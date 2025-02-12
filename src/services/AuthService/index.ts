@@ -48,7 +48,7 @@ export const loginUser = async (userData: FieldValues) => {
 };
 
 export const getCurrentUser = async () => {
-  const accessToken = (await cookies()).get("accessToken")!.value;
+  const accessToken = (await cookies()).get("accessToken")?.value;
   let decodedData = null;
 
   if (accessToken) {
@@ -76,4 +76,8 @@ export const reCaptchaTokenVerification = async (token: string) => {
   } catch (err: any) {
     return Error(err);
   }
+};
+
+export const logout = async () => {
+  (await cookies()).delete("accessToken");
 };
