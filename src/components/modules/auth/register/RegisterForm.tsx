@@ -30,7 +30,6 @@ export default function RegisterForm() {
 
   const password = form.watch("password");
   const passwordConfirm = form.watch("passwordConfirm");
-  //   console.log(password, passwordConfirm);
   const router = useRouter();
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
