@@ -31,7 +31,6 @@ export default function RegisterForm() {
 
   const password = form.watch("password");
   const passwordConfirm = form.watch("passwordConfirm");
-  //   console.log(password, passwordConfirm);
   const router = useRouter();
 
   const { setIsLoading } = useUser();
