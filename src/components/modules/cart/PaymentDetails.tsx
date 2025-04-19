@@ -55,10 +55,8 @@ export default function PaymentDetails() {
         throw new Error("Cart is empty, what are you trying to order ??");
       }
 
-      let orderData;
-
-   
-      orderData = order;
+     
+      const orderData = order;
       
       const res = await createOrder(orderData);
 

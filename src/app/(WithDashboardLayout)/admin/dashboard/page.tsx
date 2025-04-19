@@ -73,7 +73,7 @@ export default async function AdminDashboard() {
 
         <Card className="bg-gradient-to-r from-yellow-100 to-yellow-50 border-yellow-200">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-700">💰 Today's Sales</CardTitle>
+            <CardTitle className="text-sm font-medium text-yellow-700">💰 Today&apos;s Sales</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-700">

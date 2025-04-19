@@ -19,7 +19,7 @@ export default function FavoritesPage() {
       
       {favorites.length === 0 ? (
         <div className="text-center py-10">
-          <p className="text-gray-500">You haven't added any favorites yet.</p>
+          <p className="text-gray-500">You haven&apos;t added any favorites yet.</p>
         </div>
       ) : (
         <div className="grid grid-cols-4 gap-8">

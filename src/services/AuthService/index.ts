@@ -63,7 +63,7 @@ export const loginUser = async (userData: FieldValues) => {
 export const getCurrentUser = async (): Promise<IUser | null> => {
  
  
-  let accessToken = await getValidToken()
+  const accessToken = await getValidToken()
   
 
   if (accessToken) {
