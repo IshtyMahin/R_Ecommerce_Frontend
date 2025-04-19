@@ -59,13 +59,13 @@ export default function PaymentDetails() {
       const orderData = order;
       
       const res = await createOrder(orderData);
-
+      
       if (res.success) {
         toast.success(res.message, { id: orderLoading });
         dispatch(clearCart());
-        console.log(res.data.paymentUrl, "paymentUrl from order");
         
-        router.push(res.data.paymentUrl);
+        
+        router.push(res.data.data.paymentUrl);
       }
 
       if (!res.success) {

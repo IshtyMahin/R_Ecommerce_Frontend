@@ -39,14 +39,17 @@ const DiscountModal = ({ selectedIds, setSelectedIds }: TModalProps) => {
     };
 
     try {
+      
       const res = await addFlashSale(modifiedData);
       if (res.success) {
         toast.success(res.message);
         setSelectedIds([]);
       } else {
+        
         toast.error(res.message);
       }
     } catch (err: any) {
+      
     }
   };
 

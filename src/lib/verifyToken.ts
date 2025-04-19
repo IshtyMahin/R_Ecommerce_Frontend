@@ -24,7 +24,7 @@ export const getValidToken = async (): Promise<string> => {
 
   
   
-  if (!token ) {
+  if (!token || await isTokenExpired(token)) {
     const { data } = await getNewToken();
     
     token = data?.accessToken;

@@ -14,7 +14,6 @@ export const getMetaData = async () => {
       },
     });
 
-    console.log(res, "meta data response");
     
 
     if (!res.ok) {

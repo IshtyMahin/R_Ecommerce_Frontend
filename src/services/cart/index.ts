@@ -6,10 +6,12 @@ import { cookies } from "next/headers";
 
 export const createOrder = async (order: IOrder) => {
   try {
+    const token =await getValidToken()
+    
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/order`, {
       method: "POST",
       headers: {
-        Authorization: (await getValidToken()),
+        Authorization: token,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(order),
@@ -17,6 +19,8 @@ export const createOrder = async (order: IOrder) => {
 
     return await res.json();
   } catch (error: any) {
+
+    
     return Error(error);
   }
 };
