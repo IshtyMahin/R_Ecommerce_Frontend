@@ -113,7 +113,7 @@ export default function LoginForm() {
           </div>
 
           <Button
-            // disabled={reCaptchaStatus ? false : true}
+            disabled={reCaptchaStatus ? false : true}
             type="submit"
             className="mt-5 w-full"
           >
