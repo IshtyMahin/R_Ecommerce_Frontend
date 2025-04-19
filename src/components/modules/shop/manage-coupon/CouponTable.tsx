@@ -23,11 +23,9 @@ const CouponTable = ({
   const router = useRouter();
 
   const handleView = (product: IProduct) => {
-    console.log("Viewing product:", product);
   };
 
   const handleDelete = (productId: string) => {
-    console.log("Deleting product with ID:", productId);
   };
 
   const columns: ColumnDef<IProduct>[] = [
@@ -149,9 +147,7 @@ const CouponTable = ({
     <div className="my-5">
       <NMTable columns={columns} data={coupons || []} />
       <TablePagination
-        currentPage={currentPage}
-        totalPages={meta?.totalPage}
-        onPageChange={setCurrentPage}
+        totalPage={meta?.totalPage}
       />
     </div>
   );

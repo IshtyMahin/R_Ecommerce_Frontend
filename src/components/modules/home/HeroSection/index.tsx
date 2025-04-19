@@ -3,6 +3,7 @@ import styles from "./HeroSection.module.css";
 import Image from "next/image";
 import cupImg from "@/assets/cup-with-headphone.png";
 import NMContainer from "@/components/ui/core/NMContainer";
+import Link from "next/link";
 
 const HeroSection = () => {
   return (
@@ -20,15 +21,21 @@ const HeroSection = () => {
               Save big this Black Friday with unbeatable deals on tech, home
               essentials, fashion, and more! Limited stock.
             </p>
+            <Link href="/products" passHref>
             <Button size="lg" className="mr-5 rounded-full">
               Buy Now
             </Button>
+            </Link>
+            <Link href="/products" passHref>
             <Button
               size="lg"
               className="rounded-full bg-white text-black hover:bg-gray-100"
             >
               All Products
             </Button>
+            </Link>
+           
+           
           </div>
           <div className="flex items-center justify-center">
             <Image src={cupImg} alt="cup with headphone" />

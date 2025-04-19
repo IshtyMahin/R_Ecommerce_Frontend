@@ -18,7 +18,7 @@ const FlashSale = async () => {
             <CountDown />
           </div>
 
-          <Link href="/products">
+          <Link href="/products?flash_sale=true">
             <Button variant="outline" className="rounded-full">
               All Collection
             </Button>

@@ -101,7 +101,6 @@ export default function UpdateProductForm({ product }: { product: IProduct }) {
     appendSpec({ key: "", value: "" });
   };
 
-  // console.log(specFields);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -132,7 +131,6 @@ export default function UpdateProductForm({ product }: { product: IProduct }) {
         (specification[item.key] = item.value)
     );
 
-    // console.log({ availableColors, keyFeatures, specification });
 
     const modifiedData = {
       ...data,
@@ -160,7 +158,6 @@ export default function UpdateProductForm({ product }: { product: IProduct }) {
         toast.error(res.message);
       }
     } catch (err: any) {
-      console.error(err);
     }
   };
 

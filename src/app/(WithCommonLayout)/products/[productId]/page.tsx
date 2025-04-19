@@ -1,3 +1,4 @@
+
 import ProductBanner from "@/components/modules/products/banner";
 import ProductDetails from "@/components/modules/products/productDetails";
 import NMContainer from "@/components/ui/core/NMContainer";
@@ -19,6 +20,8 @@ const ProductDetailsPage = async ({
         path="Home - Products - Product Details"
       />
       <ProductDetails product={product} />
+      
+        
     </NMContainer>
   );
 };

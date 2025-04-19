@@ -1,5 +1,6 @@
 "use server";
 
+import { getValidToken } from "@/lib/verifyToken";
 import { IOrder } from "@/types/cart";
 import { cookies } from "next/headers";
 
@@ -8,7 +9,7 @@ export const createOrder = async (order: IOrder) => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/order`, {
       method: "POST",
       headers: {
-        Authorization: (await cookies()).get("accessToken")!.value,
+        Authorization: (await getValidToken()),
         "Content-Type": "application/json",
       },
       body: JSON.stringify(order),
@@ -27,7 +28,7 @@ export const addCoupon = async (
 ) => {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_API}/coupon/${couponCode}`,
+      `${process.env.NEXT_PUBLIC_BASE_API}/apply/coupon/${couponCode}`,
       {
         method: "POST",
         headers: {

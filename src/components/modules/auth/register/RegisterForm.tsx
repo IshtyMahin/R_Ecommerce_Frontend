@@ -46,7 +46,6 @@ export default function RegisterForm() {
         toast.error(res?.message);
       }
     } catch (err: any) {
-      console.error(err);
     }
   };
 

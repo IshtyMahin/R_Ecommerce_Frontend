@@ -11,7 +11,6 @@ const CartPage = () => {
       <ProductBanner title="Cart Page" path="Home - Cart" />
       <div className="grid grid-cols-12 gap-8 my-5">
         <CartProducts />
-        <Coupon />
         <Address />
         <PaymentDetails />
       </div>

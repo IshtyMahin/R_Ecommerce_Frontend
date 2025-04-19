@@ -22,13 +22,47 @@ export const addFlashSale = async (productData: any): Promise<any> => {
 };
 
 // get Flash Sale Products
-export const getFlashSaleProducts = async () => {
+export const getFlashSaleProducts = async (
+  page?: string,
+  limit?: string,
+  query?: { [key: string]: string | string[] | undefined }
+) => {
+  const params = new URLSearchParams();
+
+  if (page) params.append("page", page);
+  if (limit) params.append("limit", limit);
+
+  if (query?.price) {
+    params.append("minPrice", "0");
+    params.append("maxPrice", query.price.toString());
+  }
+
+  if (query?.category) {
+    params.append("categories", query.category.toString());
+  }
+
+  if (query?.brand) {
+    params.append("brands", query.brand.toString());
+  }
+
+  if (query?.rating) {
+    params.append("ratings", query.rating.toString());
+  }
+
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_API}/flash-sale`, {
-      next: {
-        tags: ["PRODUCT"],
-      },
-    });
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_API}/flash-sale?${params.toString()}`,
+      {
+        next: {
+          tags: ["PRODUCT"],
+        },
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch flash sale products: ${res.status}`);
+    }
+
     const data = await res.json();
     return data;
   } catch (error: any) {

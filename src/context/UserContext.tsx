@@ -8,6 +8,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { log } from "three/src/nodes/TSL.js";
 
 interface IUserProviderValues {
   user: IUser | null;
@@ -30,6 +31,7 @@ const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     handleUser();
+
   }, [isLoading]);
 
   return (

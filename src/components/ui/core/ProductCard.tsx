@@ -8,19 +8,57 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useFavorites } from "@/context/FavoritesContext";
 import { addProduct } from "@/redux/features/cartSlice";
 import { useAppDispatch } from "@/redux/hooks";
-
 import { IProduct } from "@/types";
 import { Heart, ShoppingCart, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 const ProductCard = ({ product }: { product: IProduct }) => {
   const dispatch = useAppDispatch();
+  const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
+  const favorite = isFavorite(product._id);
+  const router = useRouter();
 
   const handleAddProduct = (product: IProduct) => {
     dispatch(addProduct(product));
+    toast.success(`${product.name} added to cart`, {
+      position: "top-right",
+      duration: 2000,
+    });
+  };
+
+  const handleBuyNow = (product: IProduct) => {
+    dispatch(addProduct(product));
+    toast.success(`${product.name} added to cart`, {
+      position: "top-right",
+      duration: 1500,
+      action: {
+        label: "View Cart",
+        onClick: () => router.push('/cart'),
+      },
+    });
+    router.push('/cart');
+  };
+
+  const toggleFavorite = () => {
+    if (favorite) {
+      removeFromFavorites(product._id);
+      toast.info(`${product.name} removed from favorites`, {
+        position: "top-right",
+        duration: 1500,
+      });
+    } else {
+      addToFavorites(product);
+      toast.success(`${product.name} added to favorites`, {
+        position: "top-right",
+        duration: 1500,
+      });
+    }
   };
 
   return (
@@ -85,6 +123,7 @@ const ProductCard = ({ product }: { product: IProduct }) => {
       <CardFooter className="block p-0">
         <div className="flex gap-2 items-center justify-between">
           <Button
+            onClick={() => handleBuyNow(product)}
             disabled={product?.stock === 0}
             size="sm"
             variant="outline"
@@ -102,11 +141,14 @@ const ProductCard = ({ product }: { product: IProduct }) => {
             <ShoppingCart />
           </Button>
           <Button
+            onClick={toggleFavorite}
             variant="outline"
             size="sm"
             className="w-8 h-8 p-0 flex items-center justify-center rounded-full"
+            aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
           >
-            <Heart />
+            <Heart fill={favorite ? "red" : "transparent"} 
+              color={favorite ? "red" : "gray"} />
           </Button>
         </div>
       </CardFooter>

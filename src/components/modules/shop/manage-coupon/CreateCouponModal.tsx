@@ -46,7 +46,6 @@ export default function CreateCouponModal() {
       endDate: formatISO(data.endDate),
     };
 
-    console.log(couponData);
 
     form.reset();
   };

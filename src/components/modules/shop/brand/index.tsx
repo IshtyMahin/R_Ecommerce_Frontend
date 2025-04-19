@@ -25,7 +25,6 @@ const ManageBrands = ({ brands }: { brands: IBrand[] }) => {
     try {
       if (selectedId) {
         const res = await deleteBrand(selectedId);
-        console.log(res);
         if (res.success) {
           toast.success(res.message);
           setModalOpen(false);
@@ -34,7 +33,6 @@ const ManageBrands = ({ brands }: { brands: IBrand[] }) => {
         }
       }
     } catch (err: any) {
-      console.error(err?.message);
     }
   };
 

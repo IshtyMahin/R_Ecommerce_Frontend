@@ -47,7 +47,6 @@ const DiscountModal = ({ selectedIds, setSelectedIds }: TModalProps) => {
         toast.error(res.message);
       }
     } catch (err: any) {
-      console.error(err);
     }
   };
 

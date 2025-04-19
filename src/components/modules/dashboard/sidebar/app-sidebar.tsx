@@ -2,16 +2,18 @@
 
 import * as React from "react";
 import {
-  Bot,
-  Frame,
-  LifeBuoy,
-  Map,
-  PieChart,
-  Send,
+  Package,
+  Tag,
+  Award,
+  Gift,
+  ShoppingCart,
+  User,
   Settings,
+  LifeBuoy,
+  Send,
   SquareTerminal,
+  Lock,
 } from "lucide-react";
-
 import {
   Sidebar,
   SidebarContent,
@@ -25,83 +27,115 @@ import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 import Link from "next/link";
 import Logo from "@/assets/svgs/Logo";
+import { useUser } from "@/context/UserContext";
 
-const data = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/user/dashboard",
-      icon: SquareTerminal,
-      isActive: true,
-    },
-    {
-      title: "Shop",
-      url: "/user/shop/products",
-      icon: Bot,
-      items: [
-        {
-          title: "Manage Products",
-          url: "/user/shop/products",
-        },
-        {
-          title: "Manage Categories",
-          url: "/user/shop/category",
-        },
-        {
-          title: "Manage Brands",
-          url: "/user/shop/brand",
-        },
-        {
-          title: "Manage Coupon",
-          url: "/user/shop/manage-coupon",
-        },
-      ],
-    },
+const adminMenuItems = [
+  {
+    title: "Dashboard",
+    url: "/admin/dashboard",
+    icon: SquareTerminal,
+    isActive: true,
+  },
+  {
+    title: "Products",
+    url: "/admin/dashboard/products",
+    icon: Package,
+  },
+  {
+    title: "Categories",
+    url: "/admin/dashboard/category",
+    icon: Tag,
+  },
+  {
+    title: "Brands",
+    url: "/admin/dashboard/brand",
+    icon: Award,
+  },
+  {
+    title: "Coupons",
+    url: "/admin/dashboard/manage-coupon",
+    icon: Gift,
+  },
+  {
+    title: "Orders",
+    url: "/admin/dashboard/orders",
+    icon: ShoppingCart,
+  },
+  {
+    title: "Users",
+    url: "/admin/dashboard/users",
+    icon: User,
+  },
+  {
+    title: "Settings",
+    url: "#",
+    icon: Settings,
+    items: [
+      {
+        title: "System Settings",
+        url: "/admin/settings/system",
+        icon: Settings,
+      },
+      {
+        title: "Permissions",
+        url: "/admin/settings/permissions",
+        icon: Lock,
+      },
+    ],
+  },
+];
 
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings,
-      items: [
-        {
-          title: "Profile",
-          url: "/profile",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Support",
-      url: "#",
-      icon: LifeBuoy,
-    },
-    {
-      title: "Feedback",
-      url: "#",
-      icon: Send,
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
-};
+const userMenuItems = [
+  {
+    title: "My Dashboard",
+    url: "/user/dashboard",
+    icon: SquareTerminal,
+    isActive: true,
+  },
+  {
+    title: "My Orders",
+    url: "/user/orders",
+    icon: ShoppingCart,
+  },
+  {
+    title: "Profile",
+    url: "/user/profile",
+    icon: User,
+  },
+  {
+    title: "Settings",
+    url: "/user/settings",
+    icon: Settings,
+  },
+];
+
+const commonSecondaryItems = [
+  {
+    title: "Support",
+    url: "/support",
+    icon: LifeBuoy,
+  },
+  {
+    title: "Feedback",
+    url: "/feedback",
+    icon: Send,
+  },
+];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user, isLoading } = useUser();
+
+  if (isLoading) {
+    return (
+      <Sidebar {...props}>
+        <div className="p-4 text-center">Loading menu...</div>
+      </Sidebar>
+    );
+  }
+
+  const isAdmin = user?.role === "admin";
+  const menuItems = isAdmin ? adminMenuItems : userMenuItems;
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -121,10 +155,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={menuItems} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
+        <NavMain items={commonSecondaryItems} />
       </SidebarFooter>
     </Sidebar>
   );

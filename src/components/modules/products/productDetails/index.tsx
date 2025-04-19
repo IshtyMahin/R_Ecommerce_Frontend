@@ -1,10 +1,64 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { IProduct } from "@/types";
-import { Star } from "lucide-react";
+import { Sparkles, Star } from "lucide-react";
 import Image from "next/image";
+import ProductReviewSection from "../productReview/ProductReview";
+import { useEffect, useState } from "react";
+import { IReview } from "@/types/review";
+import { useUser } from "@/context/UserContext";
+import { getProductReviews } from "@/services/Review";
+import { hasPurchasedProduct } from "@/services/AuthService";
+import dynamic from "next/dynamic";
+import { useAppDispatch } from "@/redux/hooks";
+import { useRouter } from "next/navigation";
+import { addProduct } from "@/redux/features/cartSlice";
+import { toast } from "sonner";
 
 const ProductDetails = ({ product }: { product: IProduct }) => {
+  const [reviews, setReviews] = useState<IReview[]>([]);
+  const [userHasPurchased, setUserHasPurchased] = useState(false);
+  const { user } = useUser();
+  const dispatch = useAppDispatch();
+ const router = useRouter();
+  useEffect(() => {
+    const fetchData = async () => {
+      const reviewData = await getProductReviews(product._id,undefined, "5");
+      setReviews(reviewData?.data?.result || []);
+
+      if (user) {
+        const hasPurchased = await hasPurchasedProduct(product._id);
+        
+        setUserHasPurchased(hasPurchased);
+      }
+    };
+
+    fetchData();
+  }, [product?._id, user]);
+
+  const handleAddProduct = (product: IProduct) => {
+    dispatch(addProduct(product));
+    toast.success(`${product.name} added to cart`, {
+      position: "top-right",
+      duration: 2000,
+    });
+  };
+
+  const handleBuyNow = (product: IProduct) => {
+    dispatch(addProduct(product));
+    toast.success(`${product.name} added to cart`, {
+      position: "top-right",
+      duration: 1500,
+      action: {
+        label: "View Cart",
+        onClick: () => router.push('/cart'),
+      },
+    });
+    router.push('/cart');
+  };
   return (
+    <>
     <div className="grid grid-cols-2 gap-4 border border-white p-4 rounded-md my-5 shadow-sm">
       <div>
         <Image
@@ -62,13 +116,36 @@ const ProductDetails = ({ product }: { product: IProduct }) => {
           )}
         </p>
         <hr />
+       
+         <div className="space-x-2 flex">
+            <Button
+              onClick={() => handleBuyNow(product)}
+              disabled={product?.stock === 0}
+              className="w-full h-12 text-base font-medium shadow-sm hover:shadow-md transition-shadow"
+              variant="default"
+            >
+              {product?.stock === 0 ? 'Out of Stock' : 'Buy Now'}
+            </Button>
 
-        <Button variant="outline" className="w-full my-5">
-          Add To Cart
-        </Button>
-        <Button className="w-full">Buy Now</Button>
+            <Button
+              onClick={() => handleAddProduct(product)}
+              disabled={product?.stock === 0}
+              variant="outline"
+              className="w-full h-11 border-2 text-base font-medium hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+            >
+              {product?.stock === 0 ? 'Unavailable' : 'Add to Cart'}
+            </Button>
+
+        </div>
+
+   
       </div>
     </div>
+    <ProductReviewSection 
+  productId={product?._id} 
+  reviews={reviews} 
+  userHasPurchased={userHasPurchased} 
+/></>
   );
 };
 

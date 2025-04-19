@@ -53,7 +53,6 @@ export const fetchCoupon = createAsyncThunk(
 
       return res;
     } catch (err: any) {
-      console.log(err);
       throw new Error(err.message);
     }
   }
@@ -64,9 +63,7 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addProduct: (state, action) => {
-      if (state.products.length === 0) {
-        state.shopId = action.payload.shop._id;
-      }
+   
 
       const productToAdd = state.products.find(
         (product) => product._id === action.payload._id
@@ -197,7 +194,7 @@ export const grandTotalSelector = (state: RootState) => {
 };
 
 export const couponSelector = (state: RootState) => {
-  return state.cart.coupon;
+  return state.cart.coupon ;
 };
 
 export const discountAmountSelector = (state: RootState) => {

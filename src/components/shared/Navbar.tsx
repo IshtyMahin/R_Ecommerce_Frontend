@@ -21,6 +21,9 @@ import { orderedProductsSelector } from "@/redux/features/cartSlice";
 
 export default function Navbar() {
   const { user, setIsLoading } = useUser();
+
+
+  
   const pathname = usePathname();
   const router = useRouter();
   const products = useAppSelector(orderedProductsSelector);
@@ -49,9 +52,11 @@ export default function Navbar() {
           />
         </div>
         <nav className="flex gap-2">
+        <Link href="/favorites" passHref>
           <Button variant="outline" className="rounded-full p-0 size-10">
             <Heart />
           </Button>
+          </Link>
           <Link href="/cart" passHref>
             <Button
               variant="outline"
@@ -66,9 +71,6 @@ export default function Navbar() {
 
           {user?.email ? (
             <>
-              <Link href="/create-shop">
-                <Button className="rounded-full">Create Shop</Button>
-              </Link>
 
               <DropdownMenu>
                 <DropdownMenuTrigger>
@@ -84,7 +86,6 @@ export default function Navbar() {
                   <DropdownMenuItem>
                     <Link href={`/${user?.role}/dashboard`}>Dashboard</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>My Shop</DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     className="bg-red-500 cursor-pointer"

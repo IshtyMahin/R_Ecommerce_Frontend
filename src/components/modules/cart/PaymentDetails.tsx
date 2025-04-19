@@ -29,7 +29,6 @@ export default function PaymentDetails() {
   const city = useAppSelector(citySelector);
   const shippingAddress = useAppSelector(shippingAddressSelector);
   const cartProducts = useAppSelector(orderedProductsSelector);
-  const coupon = useAppSelector(couponSelector);
 
   const user = useUser();
 
@@ -58,17 +57,16 @@ export default function PaymentDetails() {
 
       let orderData;
 
-      if (coupon.code) {
-        orderData = { ...order, coupon: coupon.code };
-      } else {
-        orderData = order;
-      }
-
+   
+      orderData = order;
+      
       const res = await createOrder(orderData);
 
       if (res.success) {
         toast.success(res.message, { id: orderLoading });
         dispatch(clearCart());
+        console.log(res.data.paymentUrl, "paymentUrl from order");
+        
         router.push(res.data.paymentUrl);
       }
 
@@ -83,8 +81,7 @@ export default function PaymentDetails() {
   return (
     <div className="border-2 border-white bg-background brightness-105 rounded-md col-span-4 h-fit p-5">
       <h1 className="text-2xl font-bold">Payment Details</h1>
-      {coupon.isLoading && <div>Loading...</div>}
-      {!coupon.isLoading && (
+   
         <>
           <div className="space-y-2 mt-4">
             <div className="flex justify-between">
@@ -107,7 +104,7 @@ export default function PaymentDetails() {
             <p className="font-semibold">{currencyFormatter(grandTotal)}</p>
           </div>
         </>
-      )}
+      
       <Button
         onClick={handleOrder}
         className="w-full text-xl font-semibold py-5"
