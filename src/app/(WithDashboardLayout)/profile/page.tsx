@@ -106,7 +106,7 @@ const ProfilePage = () => {
     return (
       <div className="max-w-4xl mx-auto p-4 text-center space-y-4">
         <h2 className="text-2xl font-bold">No Profile Data</h2>
-        <p className="text-gray-500">We couldn't find any profile information for your account.</p>
+        <p className="text-gray-500">We couldn&apos;t find any profile information for your account.</p>
         <Button
           variant="link"
           onClick={() => router.push('/profile/edit')}
