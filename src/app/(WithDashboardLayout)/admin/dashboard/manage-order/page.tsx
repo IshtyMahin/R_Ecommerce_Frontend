@@ -1,13 +1,10 @@
 import ManageOrders from "@/components/modules/order/ManageOrders";
 import { getAllOrders } from "@/services/Order";
 import { Metadata } from "next";
-import { any } from "zod";
 
 export const metadata: Metadata = {
   title: "Manage Orders | Admin",
 };
-
-
 
 const ManageOrdersPage = async ({
   searchParams,
