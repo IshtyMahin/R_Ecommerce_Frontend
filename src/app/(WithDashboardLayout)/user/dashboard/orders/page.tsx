@@ -13,7 +13,7 @@ export default async function MyOrdersPage({
 }) {
   try {
     const { page } =await searchParams || "1";
-    const { data, meta } = await getMyOrders(page, "10"); // 10 items per page
+    const { data, meta } = await getMyOrders(page, "10"); 
     return <MyOrders orders={data} meta={meta} />;
   } catch (error) {
     return (
