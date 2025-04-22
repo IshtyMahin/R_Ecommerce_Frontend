@@ -12,8 +12,8 @@ export default async function ManageOrdersPage({
   searchParams: { page: string }; 
 }) {
   try {
-    const { page } = searchParams; 
-    const { data, meta } = await getAllOrders(page, "10"); 
+    const page = searchParams.page || "1"; 
+    const { data, meta } = await getAllOrders(page, "10");
     return <ManageOrders orders={data} meta={meta} />;
   } catch (error) {
     return (
