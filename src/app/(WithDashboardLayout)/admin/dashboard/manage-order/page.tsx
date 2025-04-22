@@ -10,10 +10,10 @@ export const metadata: Metadata = {
 export default async function ManageOrdersPage({
   searchParams,
 }: {
-  searchParams: { page: string };
+    searchParams: Promise<{ page: string }>;
 }) {
   try {
-    const { page } = searchParams;
+    const { page } = await searchParams;
     const { data, meta } = await getAllOrders(page, "10"); 
     return <ManageOrders orders={data} meta={meta} />;
   } catch (error) {
