@@ -1,4 +1,3 @@
-// app/admin/dashboard/orders/page.tsx
 import ManageOrders from "@/components/modules/order/ManageOrders";
 import { getAllOrders } from "@/services/Order";
 import { Metadata } from "next";
@@ -10,10 +9,10 @@ export const metadata: Metadata = {
 export default async function ManageOrdersPage({
   searchParams,
 }: {
-    searchParams: Promise<{ page: string }>;
+  searchParams: { page: string }; 
 }) {
   try {
-    const { page } = await searchParams;
+    const { page } = searchParams; 
     const { data, meta } = await getAllOrders(page, "10"); 
     return <ManageOrders orders={data} meta={meta} />;
   } catch (error) {
