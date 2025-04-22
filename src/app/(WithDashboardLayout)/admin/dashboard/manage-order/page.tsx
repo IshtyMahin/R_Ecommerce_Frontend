@@ -6,20 +6,21 @@ export const metadata: Metadata = {
   title: "Manage Orders | Admin",
 };
 
-export default async function ManageOrdersPage({
+
+
+const ManageOrdersPage = async ({
   searchParams,
 }: {
-  searchParams: { page: string }; 
-}) {
-  try {
-    const page = searchParams.page || "1"; 
-    const { data, meta } = await getAllOrders(page, "10");
-    return <ManageOrders orders={data} meta={meta} />;
-  } catch (error) {
-    return (
-      <div className="p-4 text-red-500">
-        Failed to load orders. Please try again later.
-      </div>
-    );
-  }
-}
+  searchParams: Promise<{ page: string }>;
+}) => {
+  const { page } = await searchParams;
+
+  const { data, meta } = await getAllOrders(page, "10");
+  return (
+    <div>
+      <ManageOrders orders={data}  meta={meta} />
+    </div>
+  );
+};
+
+export default ManageOrdersPage;
