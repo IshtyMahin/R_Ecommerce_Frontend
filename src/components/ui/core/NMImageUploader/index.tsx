@@ -6,29 +6,42 @@ import { cn } from "@/lib/utils";
 type TImageUploader = {
   label?: string;
   className?: string;
+  multiple?: boolean;
+  accept?: string;
   setImageFiles: React.Dispatch<React.SetStateAction<File[]>>;
   setImagePreview: React.Dispatch<React.SetStateAction<string[]>>;
+  singleFile?: boolean;
 };
 
 const NMImageUploader = ({
   label = "Upload Images",
   className,
+  multiple = true,
+  accept = "image/*",
   setImageFiles,
   setImagePreview,
+  singleFile = false,
 }: TImageUploader) => {
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files![0];
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-    setImageFiles((prev) => [...prev, file]);
+    const fileArray = Array.from(files);
 
-    if (file) {
+    if (singleFile) {
+      setImageFiles([fileArray[0]]);
       const reader = new FileReader();
+      reader.onloadend = () => setImagePreview([reader.result as string]);
+      reader.readAsDataURL(fileArray[0]);
+    } else {
+      fileArray.forEach((file) => {
+        setImageFiles((prev) => [...prev, file]);
 
-      reader.onloadend = () => {
-        setImagePreview((prev) => [...prev, reader.result as string]);
-      };
-
-      reader.readAsDataURL(file);
+        const reader = new FileReader();
+        reader.onloadend = () =>
+          setImagePreview((prev) => [...prev, reader.result as string]);
+        reader.readAsDataURL(file);
+      });
     }
 
     event.target.value = "";
@@ -39,8 +52,8 @@ const NMImageUploader = ({
       <Input
         id="image-upload"
         type="file"
-        accept="image/*"
-        multiple
+        accept={accept}
+        multiple={!singleFile && multiple}
         className="hidden"
         onChange={handleImageChange}
       />

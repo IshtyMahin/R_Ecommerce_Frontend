@@ -35,4 +35,10 @@ export interface IProduct {
   createdAt: string;
   updatedAt: string;
   offerPrice: number;
+
+  arModel?: string; // URL to GLB/GLTF model
+  arScale?: number; // Default scale (0-1)
+  arPosition?: { x: number; y: number; z: number }; // Default position
+  arRotation?: { x: number; y: number; z: number }; // Default rotation
+  arAvailable?: boolean; // Flag if AR is available
 }

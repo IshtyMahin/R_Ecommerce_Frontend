@@ -37,6 +37,11 @@ const adminMenuItems = [
     isActive: true,
   },
   {
+    title: "Profile",
+    url: "/profile",
+    icon: User,
+  },
+  {
     title: "Products",
     url: "/admin/dashboard/products",
     icon: Package,
@@ -58,7 +63,7 @@ const adminMenuItems = [
   },
   {
     title: "Orders",
-    url: "/admin/dashboard/orders",
+    url: "/admin/dashboard/manage-order",
     icon: ShoppingCart,
   },
   {
@@ -94,17 +99,17 @@ const userMenuItems = [
   },
   {
     title: "My Orders",
-    url: "/user/orders",
+    url: "/user/dashboard/orders",
     icon: ShoppingCart,
   },
   {
     title: "Profile",
-    url: "/user/profile",
+    url: "/profile",
     icon: User,
   },
   {
     title: "Settings",
-    url: "/user/settings",
+    url: "/user/dashboard/settings",
     icon: Settings,
   },
 ];

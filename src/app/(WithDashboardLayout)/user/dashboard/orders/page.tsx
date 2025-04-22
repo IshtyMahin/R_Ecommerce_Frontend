@@ -1,5 +1,26 @@
-export default function page() {
-  return (
-    <div>profile page</div>
-  )
+// app/account/orders/page.tsx
+import MyOrders from "@/components/modules/order/MyOrders";
+import { getMyOrders } from "@/services/Order";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "My Orders | Your Account",
+};
+
+export default async function MyOrdersPage({
+  searchParams,
+}: {
+  searchParams: { page: string };
+}) {
+  try {
+    const { page } = searchParams;
+    const { data, meta } = await getMyOrders(page, "10"); // 10 items per page
+    return <MyOrders orders={data} meta={meta} />;
+  } catch (error) {
+    return (
+      <div className="p-4 text-red-500">
+        Failed to load your orders. Please try again later.
+      </div>
+    );
+  }
 }

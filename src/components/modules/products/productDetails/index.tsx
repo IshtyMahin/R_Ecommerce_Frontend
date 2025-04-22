@@ -9,6 +9,7 @@ import { useAppDispatch } from "@/redux/hooks";
 import { useRouter } from "next/navigation";
 import { addProduct } from "@/redux/features/cartSlice";
 import { toast } from "sonner";
+import { ARButton } from "@/components/ui/ARButton";
 
 const ProductDetails = ({ product }: { product: IProduct }) => {
   const [selectedImage, setSelectedImage] = useState(0);
@@ -204,7 +205,16 @@ const ProductDetails = ({ product }: { product: IProduct }) => {
               Add to Cart
             </Button>
           </div>
-
+          {(product.arAvailable)&& 
+            <ARButton
+            modelName={product.name}
+            title={product.name}
+            description={product.description}
+            arModel={product.arModel} // Assuming product has an arModel field
+            category={product.category.name} // e.g., "hat", "sunglass"
+            link={`/products/${product._id}`} // Set link to product page
+          />
+          }
           {/* Vibrant Trust Badges */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-6">
             <div className="flex flex-col items-center bg-gradient-to-br from-blue-50 to-blue-100 p-3 rounded-lg border border-blue-200 shadow-sm">

@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AR Scene</title>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <style>
+    body { 
+      margin: 0; 
+      overflow: hidden; 
+      font-family: Arial, sans-serif;
+    }
+    canvas { 
+      display: block; 
+      width: 100%; 
+      height: 100vh; 
+    }
+    #loading {
+      position: absolute;
+      top: 50%; 
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 24px;
+      background: rgba(0,0,0,0.7);
+      padding: 20px;
+      border-radius: 10px;
+      z-index: 100;
+    }
+    #faceVideo {
+      display: none;
+    }
+    #debugInfo {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      color: white;
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 14px;
+      z-index: 50;
+    }
+    #modelInfo {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 14px;
+      z-index: 50;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">Loading AR environment...</div>
+  <video id="faceVideo" playsinline muted autoplay loop></video>
+  <div id="debugInfo"></div>
+  <div id="modelInfo"></div>
+
+  <script>
+    // Three.js variables
+    let scene, camera, renderer, model, controls, videoPlane, videoTexture;
+    
+    // Configuration variables
+    let currentColor = 0x000000;
+    let currentSize = 1;
+    let currentPosition = { x: 0.2, y: 0.0, z: 0 };
+    let currentModelUrl = 'https://res.cloudinary.com/dndhyetsa/image/upload/v1745243833/6y04e2xzbqc-1745243832556-arModel-Uploads_files_3892985_PoliceCap.glb';
+    let currentMode = 'face';
+    let currentCategory = null; 
+    let faceDetectionActive = false;
+    let modelsLoaded = false;
+    let isModelLoading = false;
+    let faceDetectionInterval;
+
+    // DOM elements
+    const videoElement = document.getElementById('faceVideo');
+    const debugInfo = document.getElementById('debugInfo');
+    const modelInfo = document.getElementById('modelInfo');
+    const loadingElement = document.getElementById('loading');
+
+    // Initialize Three.js loader
+    const modelLoader = new THREE.GLTFLoader();
+
+    // Main initialization
+    async function init() {
+      try {
+        // Retrieve category from sessionStorage
+        currentCategory = sessionStorage.getItem('category') || null;
+        console.log('[INIT] Category from sessionStorage:', currentCategory);
+        updateDebugInfo(`Initializing AR environment, Category: ${currentCategory || 'None'}`);
+
+        // Initialize Three.js scene
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf0f0f0);
+
+        // Set up camera
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 2);
+
+        // Set up renderer
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        // Add orbit controls (for object mode)
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.25;
+        controls.enabled = currentMode === 'object';
+
+        // Add lighting
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(1, 1, 1);
+        scene.add(dirLight);
+
+        // Add grid helper for object mode
+        const gridHelper = new THREE.GridHelper(10, 10);
+        gridHelper.visible = currentMode === 'object';
+        scene.add(gridHelper);
+
+        // Load face detection models
+        await loadFaceModels();
+
+        // Set up camera video stream
+        await setupCamera();
+
+        // Load default model
+        if (currentModelUrl) {
+          loadModel(currentModelUrl);
+        } else {
+          updateModelInfo('Model: None');
+        }
+
+        // Set up event listeners
+        window.addEventListener('resize', onWindowResize);
+        window.addEventListener('message', handleMessage);
+
+        // Hide loading indicator
+        loadingElement.style.display = 'none';
+        
+        updateDebugInfo(`AR environment ready, Category: ${currentCategory || 'None'}`);
+      } catch (error) {
+        console.error('Initialization error:', error);
+        updateDebugInfo(`Initialization failed: ${error.message}`);
+      }
+    }
+
+    // Set up camera video stream
+    async function setupCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: { ideal: 1920 }, 
+            height: { ideal: 1080 },
+            facingMode: 'user'
+          } 
+        });
+        
+        videoElement.srcObject = stream;
+        
+        await new Promise((resolve) => {
+          videoElement.onloadedmetadata = resolve;
+          videoElement.play().catch(e => {
+            console.error('Video play error:', e);
+            updateDebugInfo('Video error: ' + e.message);
+          });
+        });
+
+        // Set up video plane texture
+        setupVideoPlane();
+
+        // Start face detection if models are loaded
+        if (modelsLoaded) {
+          startFaceDetection();
+        }
+      } catch (err) {
+        console.error('Camera setup error:', err);
+        updateDebugInfo('Camera error: ' + err.message);
+      }
+    }
+
+    // Create video plane for background
+    function setupVideoPlane() {
+      if (videoElement.videoWidth === 0 || videoElement.videoHeight === 0) {
+        setTimeout(setupVideoPlane, 100);
+        return;
+      }
+
+      // Create video texture
+      videoTexture = new THREE.VideoTexture(videoElement);
+      videoTexture.minFilter = THREE.LinearFilter;
+      videoTexture.magFilter = THREE.LinearFilter;
+      videoTexture.format = THREE.RGBFormat;
+
+      // Calculate plane size to match camera field of view
+      const distance = Math.abs(camera.position.z - -2);
+      const vFov = (camera.fov * Math.PI) / 180;
+      const height = 2 * Math.tan(vFov / 2) * distance;
+      const aspectRatio = videoElement.videoWidth / videoElement.videoHeight;
+      const width = height * aspectRatio;
+
+      // Create plane geometry
+      const planeGeometry = new THREE.PlaneGeometry(width, height);
+      const planeMaterial = new THREE.MeshBasicMaterial({ 
+        map: videoTexture, 
+        side: THREE.DoubleSide 
+      });
+
+      // Create and position video plane
+      videoPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+      videoPlane.position.z = -2;
+      scene.add(videoPlane);
+
+      updateDebugInfo(`Video stream started: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
+    }
+
+    // Load face-api.js models
+    async function loadFaceModels() {
+      try {
+        updateDebugInfo('Loading face detection models...');
+        
+        await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+        await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
+        
+        modelsLoaded = true;
+        updateDebugInfo('Face models loaded successfully');
+      } catch (e) {
+        console.error('Face model load error:', e);
+        updateDebugInfo('Model load error: ' + e.message);
+        modelsLoaded = false;
+      }
+    }
+
+    // Start face detection loop
+    function startFaceDetection() {
+      if (faceDetectionInterval) {
+        clearInterval(faceDetectionInterval);
+      }
+      
+      const displaySize = { 
+        width: videoElement.videoWidth, 
+        height: videoElement.videoHeight 
+      };
+      
+      faceDetectionActive = true;
+      faceDetectionInterval = setInterval(() => detectFaces(displaySize), 100);
+    }
+
+    // Face detection function
+    async function detectFaces(displaySize) {
+      if (!faceDetectionActive || !modelsLoaded) return;
+      
+      try {
+        const detections = await faceapi.detectAllFaces(
+          videoElement, 
+          new faceapi.TinyFaceDetectorOptions({ inputSize: 512, scoreThreshold: 0.5 })
+        ).withFaceLandmarks();
+        
+        updateDebugInfo(`Mode: ${currentMode}, Faces: ${detections.length}, Category: ${currentCategory || 'None'}`);
+        updateModelInfo(`Model: ${currentModelUrl || 'None'}`);
+        
+        if (videoPlane) {
+          videoPlane.visible = currentMode === 'face';
+        }
+
+        if (detections.length > 0 && currentMode === 'face' && model) {
+          const landmarks = detections[0].landmarks;
+          const leftEye = landmarks.getLeftEye();
+          const rightEye = landmarks.getRightEye();
+          const mouth = landmarks.getMouth();
+
+          // Calculate outer eye corners for head width
+          const leftEyeOuter = leftEye[0];
+          const rightEyeOuter = rightEye[3];
+
+          // Calculate eye center
+          const leftEyeCenter = {
+            x: leftEye.reduce((sum, p) => sum + p.x, 0) / leftEye.length,
+            y: leftEye.reduce((sum, p) => sum + p.y, 0) / leftEye.length
+          };
+          const rightEyeCenter = {
+            x: rightEye.reduce((sum, p) => sum + p.x, 0) / rightEye.length,
+            y: rightEye.reduce((sum, p) => sum + p.y, 0) / rightEye.length
+          };
+          const eyeCenter = {
+            x: (leftEyeCenter.x + rightEyeCenter.x) / 2,
+            y: (leftEyeCenter.y + rightEyeCenter.y) / 2
+          };
+
+          // Convert to 3D coordinates
+          const x = (eyeCenter.x / displaySize.width - 0.5) * 2;
+          const y = -(eyeCenter.y / displaySize.height - 0.5) * 2;
+
+          // Calculate head width using outer eye corners
+          const headWidth = Math.sqrt(
+            Math.pow(rightEyeOuter.x - leftEyeOuter.x, 2) +
+            Math.pow(rightEyeOuter.y - leftEyeOuter.y, 2)
+          );
+          const referenceHeadWidth = 200;
+          const scaleFactor = headWidth / referenceHeadWidth;
+          const estimatedDistance = referenceHeadWidth / headWidth;
+
+          // Adjust position and scale based on category
+          let verticalOffset = 0;
+          let baseScale = 0.6;
+          let scaleMultipliers = [1.4, 0.8, 1.2];
+          let baseZ = 0.1;
+
+          if (currentCategory === 'hat' || currentCategory === 'hats') {
+            verticalOffset = 0.3; // Forehead offset for hats
+            baseScale = 0.6; // Larger scale for hats
+            scaleMultipliers = [1.4, 0.8, 1.2]; // Wider, shorter, deeper
+            baseZ = 0.1; // Closer to forehead
+          } else if (currentCategory === 'sunglass' || currentCategory === 'glasses') {
+            verticalOffset = 0.05; // Slight offset to align with eyes
+            baseScale = 0.4; // Smaller scale for glasses
+            scaleMultipliers = [1.2, 0.9, 1.0]; // Narrower, taller, standard depth
+            baseZ = 0.15; // Slightly forward to sit on nose
+          }
+
+          const finalScale = scaleFactor * baseScale;
+          model.position.set(x + 0.1, y + verticalOffset, baseZ / estimatedDistance);
+          model.scale.set(
+            finalScale * scaleMultipliers[0],
+            finalScale * scaleMultipliers[1],
+            finalScale * scaleMultipliers[2]
+          );
+
+          // Calculate rotation
+          const eyeDistance = Math.sqrt(
+            Math.pow(rightEyeCenter.x - leftEyeCenter.x, 2) +
+            Math.pow(rightEyeCenter.y - leftEyeCenter.y, 2)
+          );
+          const yaw = ((rightEyeCenter.x - leftEyeCenter.x) / eyeDistance) * 0.5;
+          const mouthCenter = {
+            x: mouth.reduce((sum, p) => sum + p.x, 0) / mouth.length,
+            y: mouth.reduce((sum, p) => sum + p.y, 0) / mouth.length
+          };
+          const pitch = ((eyeCenter.y - mouthCenter.y) / displaySize.height) * 0.5;
+          const roll = ((rightEyeCenter.y - leftEyeCenter.y) / eyeDistance) * 0.5;
+          model.rotation.set(pitch, yaw, roll);
+
+          // Debug values
+          console.log(`Head Width: ${headWidth}, Scale: ${finalScale}, Position: (${x + 0.1}, ${y + verticalOffset}, ${baseZ / estimatedDistance}), Category: ${currentCategory}`);
+        }
+      } catch (e) {
+        console.error('Face detection error:', e);
+        updateDebugInfo('Detection error: ' + e.message);
+      }
+    }
+
+    // Load 3D model
+    function loadModel(url) {
+      if (!url || isModelLoading) {
+        updateDebugInfo(`Invalid or no model URL provided: ${url}`);
+        updateModelInfo('Model: None');
+        return;
+      }
+      
+      isModelLoading = true;
+      currentModelUrl = url;
+      updateDebugInfo(`Loading model: ${url}`);
+      
+      if (model) {
+        scene.remove(model);
+        model = null;
+      }
+
+      modelLoader.load(
+        url,
+        (gltf) => {
+          model = gltf.scene;
+          
+          if (currentMode === 'face') {
+            model.scale.set(0.2, 0.2, 0.2);
+            model.position.set(0, 0, 0.2);
+          } else {
+            model.scale.set(currentSize, currentSize, currentSize);
+            model.position.set(currentPosition.x, currentPosition.y, currentPosition.z);
+          }
+          
+          model.traverse((child) => {
+            if (child.isMesh) {
+              child.material.color = currentColor;
+              child.material.needsUpdate = true;
+            }
+          });
+          
+          scene.add(model);
+          isModelLoading = false;
+          updateDebugInfo('Model loaded successfully');
+          updateModelInfo(`Model: ${url}`);
+          
+          if (currentMode === 'face' && modelsLoaded) {
+            startFaceDetection();
+          }
+        },
+        (progress) => {
+          const percent = (progress.loaded / progress.total) * 100;
+          updateModelInfo(`Loading: ${percent.toFixed(1)}%`);
+        },
+        (error) => {
+          isModelLoading = false;
+          currentModelUrl = '';
+          console.error('Model load error:', error);
+          updateDebugInfo(`Model load failed: ${error.message}`);
+          updateModelInfo('Model: None');
+        }
+      );
+    }
+
+    // Handle messages from parent window
+    function handleMessage(event) {
+      const { type, modelUrl, mode, color, size, position, category } = event.data;
+      
+      console.log('[Message Received]', { type, modelUrl, mode, color, size, position, category });
+      updateDebugInfo(`Message: ${type}, Model: ${modelUrl || 'None'}, Category: ${category || 'None'}`);
+      
+      switch (type) {
+        case 'INITIALIZE_SCENE':
+          currentModelUrl = modelUrl || currentModelUrl;
+          currentMode = mode || 'face';
+          currentCategory = category || currentCategory; // Update category if provided
+          if (category) sessionStorage.setItem('category', category); // Sync with sessionStorage
+          currentColor = new THREE.Color(color || '#000000');
+          currentSize = size || 0.2;
+          currentPosition = position || { x: 0.2, y: 0.0, z: 0 };
+          
+          if (controls) {
+            controls.enabled = currentMode === 'object';
+          }
+          
+          if (currentModelUrl) {
+            loadModel(currentModelUrl);
+          } else {
+            updateModelInfo('Model: None');
+          }
+          break;
+          
+        case 'CHANGE_COLOR':
+          currentColor = new THREE.Color(color);
+          if (model) model.traverse(child => {
+            if (child.isMesh) child.material.color.set(currentColor);
+          });
+          break;
+          
+        case 'CHANGE_SIZE':
+          currentSize = size;
+          if (model && currentMode === 'object') {
+            model.scale.set(currentSize, currentSize, currentSize);
+          }
+          break;
+          
+        case 'CHANGE_POSITION':
+          currentPosition = position;
+          if (model && currentMode === 'object') {
+            model.position.set(position.x, position.y, position.z);
+          }
+          break;
+      }
+    }
+
+    // Window resize handler
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      if (videoPlane) {
+        scene.remove(videoPlane);
+        setupVideoPlane();
+      }
+    }
+
+    // Update debug info display
+    function updateDebugInfo(message) {
+      debugInfo.textContent = message;
+      console.log('[DEBUG]', message);
+    }
+
+    // Update model info display
+    function updateModelInfo(message) {
+      modelInfo.textContent = message;
+    }
+
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      if (videoTexture) videoTexture.needsUpdate = true;
+      renderer.render(scene, camera);
+    }
+
+    // Start the application
+    init();
+    animate();
+  </script>
+</body>
+</html>
