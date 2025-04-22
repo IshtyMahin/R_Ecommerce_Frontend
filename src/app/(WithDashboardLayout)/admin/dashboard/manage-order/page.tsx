@@ -1,6 +1,7 @@
 import ManageOrders from "@/components/modules/order/ManageOrders";
 import { getAllOrders } from "@/services/Order";
 import { Metadata } from "next";
+import { any } from "zod";
 
 export const metadata: Metadata = {
   title: "Manage Orders | Admin",
@@ -11,9 +12,9 @@ export const metadata: Metadata = {
 const ManageOrdersPage = async ({
   searchParams,
 }: {
-  searchParams: Promise<{ page: string }>;
+  searchParams: Promise<any>;
 }) => {
-  const { page } = await searchParams;
+  const { page } = await searchParams || "1";
 
   const { data, meta } = await getAllOrders(page, "10");
   return (
